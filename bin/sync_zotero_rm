@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+
+from pyzotero import zotero
+from webdav3.client import Client
+from tempfile import TemporaryDirectory
+from os.path import join
+import subprocess
+import zipfile
+from rmapy.api import Client as RMClient
+from rmapy.folder import Folder
+from rmapy.document import Document
+from rmapy.document import ZipDocument
+from sync_zotero_rm.config import get_config 
+ 
+if __name__ == "__main__":
+    # get/create config
+    cfg = get_config()
+
+    # TODO init remarkabel connection
+
+    # init all services and apis we need
+    zot = zotero.Zotero(cfg['zot_user_id'], "user", cfg['zot_api_key'])
+    rmapy = RMClient()
+    rmapy.renew_token()
+
+    # used for zotero pdf download
+    webdav = Client({
+        "webdav_hostname": cfg['webdav_url'],
+        "webdav_login": cfg['webdav_user'],
+        "webdav_password": cfg['webdav_password']
+        })
+
+    # temp dir for file processing
+    tempdir = TemporaryDirectory()
+
+    # find the zotero collection key
+    print("Fetching collection from Zotero... ", end="", flush=True)
+    zot_collections = zot.collections()
+    for collection in zot_collections:
+        if collection['data']['name'] == cfg['zot_collection']:
+            zot_collection_key = collection['data']['key']
+    print("Done")
+
+    # get pdf items in collection
+    print("Fetching item list... ", end="", flush=True)
+    zot_items = zot.collection_items(zot_collection_key)
+    zot_items_pdf = [item for item in zot_items 
+        if "contentType" in item['data']
+        and item['data']['contentType'] == "application/pdf"
+    ]
+    print("Done")
+
+    print(f"Items to sync: {len(zot_items_pdf)}")
+
+    # get existing documents and folders on remarkable
+    rm_items = rmapy.get_meta_items()
+    rm_folders = [f for f in rm_items if isinstance(f, Folder)]
+    rm_documents = [f for f in rm_items if isinstance(f, Document)]
+    rm_existing_names = [f.VissibleName for f in rm_documents]
+    
+    # find or create correct folder on remarkable
+    folder = [f for f in rm_folders if f.VissibleName == cfg['rm_folder']]
+    if len(folder) > 0:
+        folder = folder[0]
+    else:  # folder does not exist yet
+        print(f"Creating folder {remarkable_folder}")
+        folder = Folder(cfg['rm_folder'])
+        rmapy.create_folder(folder)
+
+    # Process items
+    for item in zot_items_pdf:
+        title = item['data']['title']
+        print(title)
+        
+        if title[:-4] in rm_existing_names:
+            print("skip (already exists)")
+        else:
+            # Download via webdav
+            print("download, ", end="", flush=True)
+            key = item['key']
+            local_path = join(tempdir.name, f"{key}.zip")
+            webdav.download_sync(remote_path=f"{key}.zip", local_path=local_path)
+            
+            # Unpack file
+            print("unpack, ", end="", flush=True)
+            with zipfile.ZipFile(local_path, "r") as zip:
+                zip.extract(title, path=tempdir.name)
+                file_path = join(tempdir.name, title)
+
+                # Upload to RM
+                print("upload ", end="", flush=True)
+                rawDocument = ZipDocument(doc=file_path)
+                success = rmapy.upload(rawDocument, folder)
+                if success:
+                    print("done")
+                else:
+                    print("Upload failed")
+                    exit(1) 
+
+    # Delete files from zotero collection
+    print("Removing items from zotero collection")
+    for item in zot_items:
+        if item['data']['itemType'] == "attachment":
+            continue
+        zot.deletefrom_collection(zot_collection_key, item) 
+        
