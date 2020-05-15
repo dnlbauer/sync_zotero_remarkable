@@ -11,12 +11,24 @@ from rmapy.folder import Folder
 from rmapy.document import Document
 from rmapy.document import ZipDocument
 from sync_zotero_rm.config import get_config 
+
+# remarkable client setup
+def get_rmapy_client():
+    rmapy = RMClient()
+    while not rmapy.is_auth():
+        print("Enter one-time code (from https://my.remarkable.com/connect/desktop):")
+        key = input()
+        rmapy.register_device(key.strip())
+    rmapy.renew_token()
+    return rmapy
  
 if __name__ == "__main__":
     # get/create config
+    # this also performs the setup if it's run the first time
     cfg = get_config()
 
-    # TODO init remarkabel connection
+    # Init connection to remarkable server
+    rmapy = get_rmapy_client()
 
     # init all services and apis we need
     zot = zotero.Zotero(cfg['zot_user_id'], "user", cfg['zot_api_key'])
