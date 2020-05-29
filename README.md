@@ -1,4 +1,4 @@
-Transfer files from a Zotero collection to a folder on a reMarkable.
+## Transfer files from a Zotero collection to a folder on a reMarkable.
 
 This uses the Zotero and reMarkable API to keep your reMarkable updated with a folder from Zotero. In short, it fetches a collection from zotero, uses CalDAV to download all corresponding .pdf and .epub files and finally uploads them to the reMarkable cloud. Finally, the zotero collection is cleared to prevent uploading the same file multiple times (so dont use it on your main library but create a separate fodler!)
 
