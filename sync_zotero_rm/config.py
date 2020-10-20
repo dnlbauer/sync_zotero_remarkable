@@ -3,14 +3,14 @@ from pathlib import Path
 from os.path import join
 
 CONFIG_FILE = join(str(Path.home()), ".zotero_remarkable.yaml")
-CONFIG_OPTIONS = [
-        "zot_api_key",
-        "zot_user_id",
-        "zot_collection",
-        "webdav_url",
-        "webdav_user",
-        "webdav_password",
-        "rm_folder"]
+CONFIG_OPTIONS = dict(
+        zot_api_key = "Zotero api key",
+        zot_user_id = "zotero user id",
+        zot_collection = "zotero collection name",
+        webdav_url = "webdav URL",
+        webdav_user = "webdav user name",
+        webdav_password = "webdav password",
+        rm_folder = "Remarkable folder")
 
 def _read_config():
     try:
@@ -27,16 +27,16 @@ def _check_config(cfg):
     if not isinstance(cfg, dict):
         return False
     valid = True
-    for i in CONFIG_OPTIONS:
+    for i in CONFIG_OPTIONS.keys():
         if i not in cfg:
             valid = False
     return valid
 
 def _create_config():
     cfg = {}
-    for i in CONFIG_OPTIONS:
-        answer = input(i + ": ")
-        cfg[i] = answer.strip()
+    for key in CONFIG_OPTIONS:
+        answer = input(CONFIG_OPTIONS[key] + ": ")
+        cfg[key] = answer.strip()
     _write_config(cfg)
     return cfg
 
