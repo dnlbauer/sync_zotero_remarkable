@@ -19,7 +19,7 @@ def get_rmapy_client():
         print("Enter one-time code (from https://my.remarkable.com/connect/desktop):")
         key = input()
         rmapy.register_device(key.strip())
-    rmapy.renew_token()
+        rmapy.renew_token()
     return rmapy
  
 if __name__ == "__main__":
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     if len(folder) > 0:
         folder = folder[0]
     else:  # folder does not exist yet
-        print(f"Creating folder {remarkable_folder} on RM.")
+        print(f"Creating folder {cfg['rm_folder']} on RM.")
         folder = Folder(cfg['rm_folder'])
         rmapy.create_folder(folder)
 
