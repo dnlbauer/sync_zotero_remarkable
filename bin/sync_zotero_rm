@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # Process items
     print("\n#### Processing files ####\n")
     for item in zot_items_pdf:
-        title = item['data']['title']
+        title = item['data']['filename']
         print(title, end="", flush=True)
         if title[:-4] in rm_existing_names:
             print(" skipped (already exists).")
