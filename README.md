@@ -24,7 +24,8 @@ rm_folder: Read me!
 
 **Caution**: All login credentials are stored in clear text in your home
 folder (`~/.zotero_remarkable.yaml`). So you probably do not want to use this
-on publicly accessible devices. 
+on publicly accessible devices.
+If you later want to adjust the configuration, e.g. changing the Zotero collection or the folder on your reMarkable, simply change `~/.zotero_remarkable.yaml` accordingly.
 
 And then:
 ```bash
