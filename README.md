@@ -8,10 +8,18 @@ Install via pip:
 ``` python
 > pip install git+https://github.com/danijoo/sync_zotero_remarkable
 ```
+If you're using Debian or Ubuntu, you either need to execute the script with its exact location:
+```bash
+~/.local/bin/sync_zotero_rm 
+```
+
+Or add ~/.local/bin to your $PATH by adding the following line to your ~/.bashrc file [as described here](https://stackoverflow.com/a/59436732):
+
+> export PATH="$HOME/.local/bin:$PATH"
 
 On first run, you will be asked to provide login information to zotero, your associated caldav api and remarkable:
 ```bash
-> sync_zotero_rm
+sync_zotero_rm
 
 zot_api_key: *******
 zot_user_id: *******
